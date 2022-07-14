@@ -4,19 +4,6 @@ import json
 import mqttools
 
 
-# class main_server:
-#     def __init__(self, host='localhost', broker_port=10008):
-#         self.PORT = broker_port
-#         self.next_device_number = 0
-#
-#     async def start_client(self):
-#         client = mqttools.Client('localhost', self.PORT, connect_delays=[0.1])
-#         await client.start()
-#
-#         return client
-#
-#     async def device_num(self):
-
 BROKER_PORT = 1883
 
 
@@ -70,14 +57,19 @@ class main_server:
         while True:
             print(self.json_channels_set)
             for device_number in self.json_channels_set:
-                print(device_number)
-                self.device_number = max(self.json_channels_set) + 1
-                topic = '/json_channel/' + str(device_number)
-                await client.subscribe(topic)
-                message = await client.messages.get()
-                msg = json.loads(message.message.decode())
-                print('Message json:')
-                print(msg)
+                try:
+                    print(device_number)
+                    self.device_number = max(self.json_channels_set) + 1
+                    topic = '/json_channel/' + str(device_number)
+
+                    await client.subscribe(topic)
+                    message = await asyncio.wait_for(client.messages.get(), timeout=7.5)
+                    msg = json.loads(message.message.decode())
+                    print('Message json:')
+                    print(msg)
+                except:
+                    self.json_channels_set.remove(device_number)
+                    break
             await asyncio.sleep(1)
 
     async def device_main(self):

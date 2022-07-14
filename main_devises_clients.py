@@ -57,11 +57,13 @@ class device_client:
                 client.publish(mqttools.Message(topic, message))
             await asyncio.sleep(1)
 
+
     async def client_main(self):
         await asyncio.gather(
             self.new_device(),
             self.set_device_number(),
             self.message_json())
+
 
 
 
