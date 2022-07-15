@@ -1,55 +1,74 @@
-#!/usr/bin/env python
-# encoding: utf-8
-"""
-@version: v1.0
-@author: W_H_J
-@license: Apache Licence
-@contact: 415900617@qq.com
-@software: PyCharm
-@file: clicentMqttTest.py
-@time: 2019/2/22 14:19
- @describe: клиент mqtt
-"""
+import asyncio
 import json
-import sys
-import os
-import paho.mqtt.client as mqtt
-import time
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/' + '..'))
-sys.path.append("..")
+import mqttools
 
-TASK_TOPIC = 'test'  # Клиент публикует тему сообщения
-
-client_id = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-"""
- client_id предназначен для подключения к агенту. Если длина client_id равна нулю или нулю, поведение определяется используемой версией протокола. Если вы используете MQTT v3.1.1,
- Затем на прокси будет отправлен идентификатор клиента нулевой длины, и прокси будет отправлен для генерации случайной переменной для клиента. Если вы используете MQTT v3.1, то идентификатор будет
- Сгенерировано случайным образом. В обоих случаях clean_session должно быть True. Если это не вызывает ValueError в этом случае.
- Примечание. Обычно, если клиентский сервер разрешает два мониторинга, client_id не может совпадать с идентификатором сервера. Например, здесь в качестве идентификатора используется время «20190222142358».
- Если он совпадает с идентификатором сервера, сообщение не может быть получено
-"""
-client = mqtt.Client(client_id, transport='tcp')
-
-client.connect("127.0.0.1", 1883,
-               60)  # Порт здесь по умолчанию 1883, а период активности порта связи по умолчанию равен 60
-client.loop_start()
+BROKER_PORT = 1883
 
 
-def clicent_main(message: str):
-    """
-         Сообщение публикации клиента
-         : param message: тело сообщения
-    :return:
-    """
-    time_now = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(time.time()))
-    payload = {"msg": "%s" % message, "data": "%s" % time_now}
-    # опубликовать (Тема: Тема; Содержание сообщения)
-    client.publish(TASK_TOPIC, json.dumps(payload, ensure_ascii=False))
-    print("Successful send message!")
-    return True
+class main_client:
+    def __init__(self):
+        self.json_channel_set = set()
+
+    def bstr_to_intset(self, bstr):
+        strset = set(bstr.decode())
+        intset = set()
+        for i in strset:
+            try:
+                intset.add(int(i))
+            except:
+                pass
+        return intset
+
+    async def start_client(self):
+        client = mqttools.Client('localhost', BROKER_PORT, connect_delays=[0.1])
+        await client.start()
+        return client
+
+    def lv0(self, di, action_limit=0.5):
+        action_bool = 0 if di['s'] < action_limit else 1
+        return {'x': di['x'], 'y': di['y'], 'action': action_bool}
+
+    async def get_channels(self):
+        client = await self.start_client()
+        while True:
+            await client.subscribe('/open_channels')
+            message = await client.messages.get()
+            print(f'Message: {message.message}')
+            self.json_channel_set = self.bstr_to_intset(message.message)
+            print(f'Devise number: {self.json_channel_set}')
+            await asyncio.sleep(1)
+
+    async def get_jsons(self):
+        print('Get json start')
+        client = await self.start_client()
+        while True:
+            # print(self.json_channels_set)
+            for device_number in self.json_channel_set:
+                try:
+                    print(device_number)
+                    self.device_number = max(self.json_channel_set) + 1
+                    topic = '/json_channel/' + str(device_number)
+                    await client.subscribe(topic)
+                    message = await asyncio.wait_for(client.messages.get(), timeout=7.5)
+                    msg = json.loads(message.message.decode())
+                    print('Message json:')
+                    print(msg)
+                    print('Lv0')
+                    msg_l0 = self.lv0(msg)
+                    print(msg_l0)
+                except:
+                    print(f'remove {device_number}')
+                    break
+            await asyncio.sleep(1)
+
+    async def client_main(self):
+        await asyncio.gather(
+            self.get_channels(),
+            self.get_jsons(),
+        )
 
 
 if __name__ == '__main__':
-    msg = "Я кусок тестовых данных!"
-    clicent_main(msg)
+    client = main_client()
+    asyncio.run(client.client_main())

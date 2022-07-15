@@ -8,9 +8,8 @@ BROKER_PORT = 1883
 
 
 async def start_client():
-    client = mqttools.Client('localhost', BROKER_PORT, connect_delays=[0.1])
+    client = mqttools.Client('localhost', BROKER_PORT)
     await client.start()
-
     return client
 
 async def server_main():
@@ -49,13 +48,13 @@ class main_server:
             print(f'Message: {message.message.decode()} on {message.topic}')
             client.publish(mqttools.Message('/new_device_number', str(self.device_number).encode('ascii')))
             self.device_number -= 1
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.01)
 
     async def get_jsons(self):
         print('Get json start')
         client = await self.start_client()
         while True:
-            print(self.json_channels_set)
+            # print(self.json_channels_set)
             for device_number in self.json_channels_set:
                 try:
                     print(device_number)
@@ -68,19 +67,28 @@ class main_server:
                     print('Message json:')
                     print(msg)
                 except:
+                    print(f'remove {device_number}')
                     self.json_channels_set.remove(device_number)
                     break
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.01)
 
-    async def device_main(self):
+    async def open_channels_publish(self):
+        client = await self.start_client()
+        while True:
+            client.publish(mqttools.Message('/open_channels', str(self.json_channels_set).encode('ascii')))
+            await asyncio.sleep(0.01)
+
+
+    async def server_main(self):
         await asyncio.gather(
             self.broker_main(),
+            self.open_channels_publish(),
             self.new_device_register(),
             self.get_jsons())
 
 
 if __name__ == '__main__':
     server = main_server()
-    asyncio.run(server.device_main())
+    asyncio.run(server.server_main())
 
 
