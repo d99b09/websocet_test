@@ -3,12 +3,12 @@ import json
 
 import mqttools
 
-
+HOST = 'localhost'
 BROKER_PORT = 1883
 
 
 async def start_client():
-    client = mqttools.Client('localhost', BROKER_PORT)
+    client = mqttools.Client(HOST, BROKER_PORT)
     await client.start()
     return client
 
@@ -27,11 +27,11 @@ class main_server:
         self.json_channels_set = set()
 
     async def broker_main(self):
-        broker = mqttools.Broker(('localhost', BROKER_PORT))
+        broker = mqttools.Broker((HOST, BROKER_PORT))
         await broker.serve_forever()
 
     async def start_client(self):
-        client = mqttools.Client('localhost', BROKER_PORT, connect_delays=[0.1])
+        client = mqttools.Client(HOST, BROKER_PORT, connect_delays=[0.1])
         await client.start()
 
         return client
@@ -81,7 +81,7 @@ class main_server:
 
     async def server_main(self):
         await asyncio.gather(
-            self.broker_main(),
+            # self.broker_main(),
             self.open_channels_publish(),
             self.new_device_register(),
             self.get_jsons())

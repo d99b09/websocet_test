@@ -3,6 +3,7 @@ import json
 
 import mqttools
 
+HOST = '192.168.0.1'
 BROKER_PORT = 1883
 
 
@@ -21,7 +22,7 @@ class main_client:
         return intset
 
     async def start_client(self):
-        client = mqttools.Client('localhost', BROKER_PORT, connect_delays=[0.1])
+        client = mqttools.Client(HOST, BROKER_PORT, connect_delays=[0.1])
         await client.start()
         return client
 

@@ -2,10 +2,11 @@ import asyncio
 import json
 import mqttools
 
+HOST = 'localhost'
 PORT = 1883
 
 async def start_client():
-    client = mqttools.Client('localhost', PORT, connect_delays=[0.1])
+    client = mqttools.Client(HOST, PORT, connect_delays=[0.1])
     await client.start()
 
     return client
@@ -24,7 +25,7 @@ class device_client:
         self.device_number = 0
 
     async def start_client(self):
-        client = mqttools.Client('localhost', PORT)
+        client = mqttools.Client(HOST, PORT)
         await client.start()
 
         return client

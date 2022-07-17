@@ -1,6 +1,7 @@
 import asyncio
 import mqttools
 
+HOST = 'test.mosquitto.org'
 BROKER_PORT = 1883
 
 
@@ -8,12 +9,9 @@ async def broker_main():
     """The broker, serving both clients, forever.
     """
 
-    broker = mqttools.Broker(('localhost', BROKER_PORT))
-    await broker.serve_forever()
-
-
+    broker = mqttools.Broker((HOST, BROKER_PORT))
 async def main():
-    await asyncio.gather(broker_main())
+    await broker_main()
 
 
 asyncio.run(main())
