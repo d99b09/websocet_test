@@ -10,6 +10,9 @@ async def broker_main():
     """
 
     broker = mqttools.Broker((HOST, BROKER_PORT))
+    # name = await broker.getsockname()
+    # print(name)
+
 async def main():
     await broker_main()
 

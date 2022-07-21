@@ -3,7 +3,7 @@ import json
 
 import mqttools
 
-HOST = '192.168.0.1'
+HOST = 'localhost'
 BROKER_PORT = 1883
 
 

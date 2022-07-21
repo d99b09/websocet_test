@@ -81,7 +81,7 @@ class main_server:
 
     async def server_main(self):
         await asyncio.gather(
-            # self.broker_main(),
+            self.broker_main(),
             self.open_channels_publish(),
             self.new_device_register(),
             self.get_jsons())
